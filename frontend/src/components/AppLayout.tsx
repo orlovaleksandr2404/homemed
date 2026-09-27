@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layout, Menu, Typography } from 'antd';
+import type { MenuProps } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   MedicineBoxOutlined,
@@ -15,7 +16,7 @@ export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems = [
+  const menuItems: MenuProps['items'] = [
     {
       key: '/',
       icon: <MedicineBoxOutlined />,
@@ -38,18 +39,22 @@ export const AppLayout: React.FC = () => {
     },
   ];
 
+  const handleMenuClick: MenuProps['onClick'] = (e) => {
+    navigate(e.key);
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ display: 'flex', alignItems: 'center' }}>
         <Title level={4} style={{ color: '#fff', margin: '0 24px 0 0', whiteSpace: 'nowrap' }}>
-            HomeMed
+          HomeMed
         </Title>
         <Menu
           theme="dark"
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={menuItems}
-          onClick={({ key }) => navigate(key)}
+          onClick={handleMenuClick}
           style={{ flex: 1, minWidth: 0 }}
         />
       </Header>

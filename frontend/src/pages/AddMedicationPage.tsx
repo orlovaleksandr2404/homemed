@@ -3,14 +3,12 @@ import { Card, Form, Input, InputNumber, Select, DatePicker, Checkbox, Button, T
 import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
-const { Option } = Select;
 
 export const AddMedicationPage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  const onFinish = (values: unknown) => {
-    // В Лр1 сохраняем визуально и переходим на главную[cite: 2]
+  const onFinish = () => {
     message.success('Препарат успешно добавлен в список!');
     navigate('/');
   };
@@ -40,14 +38,17 @@ export const AddMedicationPage: React.FC = () => {
           name="category"
           rules={[{ required: true, message: 'Выберите категорию' }]}
         >
-          <Select placeholder="Выберите категорию">
-            <Option value="Антисептики">Антисептики</Option>
-            <Option value="Перевязочные материалы">Перевязочные материалы</Option>
-            <Option value="Антибиотики">Антибиотики</Option>
-            <Option value="Обезболивающие">Обезболивающие</Option>
-            <Option value="Растворы">Растворы</Option>
-            <Option value="Прочее">Прочее</Option>
-          </Select>
+          <Select
+            placeholder="Выберите категорию"
+            options={[
+              { value: 'Антисептики', label: 'Антисептики' },
+              { value: 'Перевязочные материалы', label: 'Перевязочные материалы' },
+              { value: 'Антибиотики', label: 'Антибиотики' },
+              { value: 'Обезболивающие', label: 'Обезболивающие' },
+              { value: 'Растворы', label: 'Растворы' },
+              { value: 'Прочее', label: 'Прочее' },
+            ]}
+          />
         </Form.Item>
 
         <Form.Item label="Форма выпуска / дозировка" name="dosage">
@@ -65,12 +66,14 @@ export const AddMedicationPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item label="Ед. изм." name="unit" style={{ width: 110 }}>
-            <Select>
-              <Option value="уп">уп</Option>
-              <Option value="шт">шт</Option>
-              <Option value="фл">фл</Option>
-              <Option value="амп">амп</Option>
-            </Select>
+            <Select
+              options={[
+                { value: 'уп', label: 'уп' },
+                { value: 'шт', label: 'шт' },
+                { value: 'фл', label: 'фл' },
+                { value: 'амп', label: 'амп' },
+              ]}
+            />
           </Form.Item>
         </div>
 
@@ -83,11 +86,13 @@ export const AddMedicationPage: React.FC = () => {
         </Form.Item>
 
         <Form.Item label="Условия хранения" name="storageConditions">
-          <Select>
-            <Option value="Комнатная температура">Комнатная температура (15-25°C)</Option>
-            <Option value="Холодильник (2-8°C)">Холодильник (2-8°C)</Option>
-            <Option value="Сухое и темное место">Сухое и темное место</Option>
-          </Select>
+          <Select
+            options={[
+              { value: 'Комнатная температура', label: 'Комнатная температура (15-25°C)' },
+              { value: 'Холодильник (2-8°C)', label: 'Холодильник (2-8°C)' },
+              { value: 'Сухое и темное место', label: 'Сухое и темное место' },
+            ]}
+          />
         </Form.Item>
 
         <Form.Item name="donateToShelter" valuePropName="checked">

@@ -112,7 +112,7 @@ export const MedicationsPage: React.FC = () => {
               placeholder="Поиск лекарства..."
               prefix={<SearchOutlined />}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               style={{ width: 260 }}
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/add')}>
