@@ -45,3 +45,58 @@ npm install
 npm run dev
 ```
 4. Открыть в браузере адрес: http://localhost:5173.
+
+## Backend и База данных (Лабораторная работа №2)
+
+### Стек технологии
+- Python 3.10+
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+
+### Модель данных
+- **Medication** (`medications`): лекарства в аптечке (`id`, `name`, `category`, `dosage`, `quantity`, `expiry_date`).
+- **Shelter** (`shelters`): приюты (`id`, `name`, `address`, `phone`, `description`).
+- **Donation** (`donations`): записи о передаче медикаментов (`id`, `medication_id`, `shelter_id`, `quantity`, `donation_date`, `status`). Таблица связана внешними ключами с `medications` и `shelters`.
+
+### Настройка и запуск Backend
+
+1. Запустите PostgreSQL и создайте базу данных:
+```bash
+sudo service postgresql start
+sudo -u postgres psql -c "CREATE DATABASE homemed_db;"
+```
+2. Перейдите в каталог backend, создайте и активируйте виртуальное окружение:
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+```
+3. Установите зависимости:
+```bash
+pip install -r requirements.txt
+```
+4. Скопируйте файл конфигурации:
+```bash
+cp .env.example .env
+```
+5. Запустите сервер:
+```bash
+uvicorn app.main:app --reload
+```
+При первом запуске таблицы создаются автоматически.
+Документация API (Swagger UI): http://127.0.0.1:8000/docs
+
+### Запуск и проверка в WSL
+
+1. В терминале WSL в папке `backend` выполните:
+```bash
+uvicorn app.main:app --reload
+```
+2. Откройте в браузере Windows адрес http://localhost:8000/docs.
+3. Проверьте сценарии в Swagger UI:
+ - Создайте лекарство (POST /api/medications/).
+ - Создайте приют (POST /api/shelters/).
+ - Создайте пожертвование (POST /api/donations/), указав id созданных записей.
+ - Проверьте запрос GET /api/donations/ — ответ вернет пожертвование с полными вложенными данными лекарства и приюта.
+ - Попробуйте отправить запрос с несуществующим id или некорректным телом и убедитесь, что возвращаются статусы 404 Not Found или 422 Unprocessable Entity.
