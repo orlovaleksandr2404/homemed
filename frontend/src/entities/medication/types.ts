@@ -11,10 +11,4 @@ export interface Medication {
   notes?: string;
 }
 
-export interface Shelter {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  neededCategories: string[];
-}
+export type MedicationFormValues = Omit<Medication, 'id'>;

@@ -1,4 +1,5 @@
-import type { Medication, Shelter } from '../types/medication';
+import type { Medication } from '../../entities/medication/types';
+import type { Shelter } from '../../entities/shelter/types';
 
 export const mockMedications: Medication[] = [
   {
@@ -30,7 +31,7 @@ export const mockMedications: Medication[] = [
     dosage: '500 мг + 125 мг',
     quantity: 1,
     unit: 'уп',
-    expiryDate: '2026-10-10', // Скоро истекает
+    expiryDate: '2026-10-28', // Скоро истекает
     storageConditions: 'Холодильник (2-8°C)',
     donateToShelter: false,
     notes: 'Осталось 6 таблеток',

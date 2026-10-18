@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Typography } from 'antd';
+import { Layout, Menu, Typography, Space, Button } from 'antd';
 import type { MenuProps } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
@@ -8,13 +8,15 @@ import {
   PlusCircleOutlined,
   ShopOutlined,
 } from '@ant-design/icons';
+import { useMedications } from '../../app/MedicationContext';
 
 const { Header, Content, Footer } = Layout;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { demoMode, setDemoMode } = useMedications();
 
   const menuItems: MenuProps['items'] = [
     {
@@ -60,11 +62,44 @@ export const AppLayout: React.FC = () => {
       </Header>
 
       <Content style={{ padding: '24px 48px', maxWidth: 1200, width: '100%', margin: '0 auto' }}>
-        <Outlet />
+        <div key={location.pathname} className="fade-in-page">
+          <Outlet />
+        </div>
       </Content>
 
       <Footer style={{ textAlign: 'center', color: '#8c8c8c' }}>
-        HomeMed.
+        <div>HomeMed.</div>
+        <Space size="small" style={{ marginTop: 8, fontSize: 12 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>Режим проверки состояний:</Text>
+          <Button
+            size="small"
+            type={demoMode === 'normal' ? 'primary' : 'default'}
+            onClick={() => setDemoMode('normal')}
+          >
+            Обычный
+          </Button>
+          <Button
+            size="small"
+            type={demoMode === 'loading' ? 'primary' : 'default'}
+            onClick={() => setDemoMode('loading')}
+          >
+            Загрузка
+          </Button>
+          <Button
+            size="small"
+            type={demoMode === 'error' ? 'primary' : 'default'}
+            onClick={() => setDemoMode('error')}
+          >
+            Ошибка
+          </Button>
+          <Button
+            size="small"
+            type={demoMode === 'empty' ? 'primary' : 'default'}
+            onClick={() => setDemoMode('empty')}
+          >
+            Пусто
+          </Button>
+        </Space>
       </Footer>
     </Layout>
   );
