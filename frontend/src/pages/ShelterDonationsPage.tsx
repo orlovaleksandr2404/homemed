@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, Table, Tag, Button, Typography, Alert, message, Modal } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { mockMedications } from '../mock/mockData';
-import type { Medication } from '../types/medication';
+import { useMedications } from '../app/MedicationContext';
+import type { Medication } from '../entities/medication/types';
+import { DataStateBlock } from '../shared/ui/DataStateBlock';
 
 const { Title, Paragraph } = Typography;
 
 export const ShelterDonationsPage: React.FC = () => {
-  const [list, setList] = useState<Medication[]>(
-    mockMedications.filter((m) => m.donateToShelter && dayjs(m.expiryDate).isAfter(dayjs()))
+  const { medications, donateMedication, demoMode, setDemoMode } = useMedications();
+
+  const list = medications.filter(
+    (m) => m.donateToShelter && dayjs(m.expiryDate).isAfter(dayjs())
   );
 
   const handleDonate = (med: Medication) => {
@@ -19,7 +22,7 @@ export const ShelterDonationsPage: React.FC = () => {
       okText: 'Передать',
       cancelText: 'Отмена',
       onOk: () => {
-        setList((prev) => prev.filter((item) => item.id !== med.id));
+        donateMedication(med.id);
         message.success(`«${med.name}» передан в приют!`);
       },
     });
@@ -85,12 +88,20 @@ export const ShelterDonationsPage: React.FC = () => {
       </Card>
 
       <Card>
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={list}
-          locale={{ emptyText: 'Нет лекарств, готовых к передаче.' }}
-        />
+        <DataStateBlock
+          loading={demoMode === 'loading'}
+          error={demoMode === 'error' ? 'Ошибка загрузки списка пожертвований.' : null}
+          isEmpty={list.length === 0}
+          emptyText="Нет лекарств, готовых к передаче."
+          onRetry={() => setDemoMode('normal')}
+        >
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={list}
+            locale={{ emptyText: 'Нет лекарств, готовых к передаче.' }}
+          />
+        </DataStateBlock>
       </Card>
     </div>
   );

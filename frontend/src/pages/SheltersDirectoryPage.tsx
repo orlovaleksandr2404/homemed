@@ -1,49 +1,61 @@
-import React from 'react';
-import { Card, Row, Col, Typography, Tag, Space } from 'antd';
-import { EnvironmentOutlined, PhoneOutlined } from '@ant-design/icons';
-import { mockShelters } from '../mock/mockData';
+import React, { useState } from 'react';
+import { Card, Row, Col, Typography, Select } from 'antd';
+import { useMedications } from '../app/MedicationContext';
+import { ShelterCard } from '../entities/shelter/ShelterCard';
+import { DataStateBlock } from '../shared/ui/DataStateBlock';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 export const SheltersDirectoryPage: React.FC = () => {
+  const { shelters, demoMode, setDemoMode } = useMedications();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const allCategories = Array.from(
+    new Set(shelters.flatMap((s) => s.neededCategories))
+  );
+
+  const filteredShelters =
+    selectedCategory === 'all'
+      ? shelters
+      : shelters.filter((s) => s.neededCategories.includes(selectedCategory));
+
   return (
     <div>
       <Card style={{ marginBottom: 20 }}>
-        <Title level={3}>Партнерские приюты</Title>
-        <Paragraph type="secondary">
-          Организации, которые принимают перевязочные материалы, растворы и ветеринарные препараты от населения.
-        </Paragraph>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <Title level={3} style={{ marginTop: 0 }}>Партнерские приюты</Title>
+            <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+              Организации, которые принимают перевязочные материалы, растворы и ветеринарные препараты от населения.
+            </Paragraph>
+          </div>
+          <Select
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            style={{ width: 240 }}
+            options={[
+              { value: 'all', label: 'Все нужды приютов' },
+              ...allCategories.map((c) => ({ value: c, label: c })),
+            ]}
+          />
+        </div>
       </Card>
 
-      <Row gutter={[16, 16]}>
-        {mockShelters.map((shelter) => (
-          <Col xs={24} md={12} key={shelter.id}>
-            <Card title={shelter.name} hoverable>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <div>
-                  <EnvironmentOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-                  <Text>{shelter.address}</Text>
-                </div>
-                <div>
-                  <PhoneOutlined style={{ marginRight: 8, color: '#52c41a' }} />
-                  <Text>{shelter.phone}</Text>
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <Text strong>Нуждаются в категориях:</Text>
-                  <div style={{ marginTop: 6 }}>
-                    {shelter.neededCategories.map((cat) => (
-                      <Tag color="blue" key={cat} style={{ marginBottom: 4 }}>
-                        {cat}
-                      </Tag>
-                    ))}
-                  </div>
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+      <DataStateBlock
+        loading={demoMode === 'loading'}
+        error={demoMode === 'error' ? 'Не удалось загрузить справочник приютов.' : null}
+        isEmpty={filteredShelters.length === 0}
+        emptyText="Приюты по выбранной категории не найдены."
+        onRetry={() => setDemoMode('normal')}
+      >
+        <Row gutter={[16, 16]}>
+          {filteredShelters.map((shelter) => (
+            <Col xs={24} md={12} key={shelter.id}>
+              <ShelterCard shelter={shelter} />
+            </Col>
+          ))}
+        </Row>
+      </DataStateBlock>
     </div>
   );
 };

@@ -1,37 +1,42 @@
 import React, { useState } from 'react';
-import { Table, Tag, Input, Space, Button, Typography, Card, Row, Col, Statistic } from 'antd';
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Tag, Space, Button, Typography, Card, Row, Col, Statistic, Popconfirm, message } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { mockMedications } from '../mock/mockData';
-import type { Medication } from '../types/medication';
+import { useMedications } from '../app/MedicationContext';
+import type { Medication } from '../entities/medication/types';
+import { ExpiryStatusTag } from '../entities/medication/ExpiryStatusTag';
+import { MedicationFilter } from '../features/medication-filter/MedicationFilter';
+import { DataStateBlock } from '../shared/ui/DataStateBlock';
 
 const { Title } = Typography;
 
 export const MedicationsPage: React.FC = () => {
-  const [data] = useState<Medication[]>(mockMedications);
+  const { medications, demoMode, setDemoMode, toggleShelterFlag, deleteMedication } = useMedications();
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
   const navigate = useNavigate();
 
-  const renderStatus = (dateStr: string) => {
-    const today = dayjs();
-    const expiry = dayjs(dateStr);
-    const diff = expiry.diff(today, 'day');
-
-    if (diff < 0) {
-      return <Tag color="error">Просрочено</Tag>;
-    }
-    if (diff <= 30) {
-      return <Tag color="warning">Истекает ({diff} дн.)</Tag>;
-    }
-    return <Tag color="success">Годен</Tag>;
-  };
-
-  const filtered = data.filter(
-    (item) =>
+  const filtered = medications.filter((item) => {
+    const matchesSearch =
       item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase())
-  );
+      item.category.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = category === 'all' || item.category === category;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleToggleShelter = (row: Medication) => {
+    if (!row.donateToShelter && dayjs(row.expiryDate).isBefore(dayjs().startOf('day'))) {
+      message.warning('Просроченный препарат нельзя передать в приют');
+      return;
+    }
+    toggleShelterFlag(row.id);
+    message.info(
+      !row.donateToShelter
+        ? `«${row.name}» отмечен для передачи в приют`
+        : `«${row.name}» убран из списка для приюта`
+    );
+  };
 
   const columns = [
     {
@@ -62,10 +67,11 @@ export const MedicationsPage: React.FC = () => {
       render: (val: string) => (
         <Space>
           <span>{dayjs(val).format('DD.MM.YYYY')}</span>
-          {renderStatus(val)}
+          <ExpiryStatusTag expiryDate={val} />
         </Space>
       ),
-      sorter: (a: Medication, b: Medication) => dayjs(a.expiryDate).unix() - dayjs(b.expiryDate).unix(),
+      sorter: (a: Medication, b: Medication) =>
+        dayjs(a.expiryDate).unix() - dayjs(b.expiryDate).unix(),
     },
     {
       title: 'Условия хранения',
@@ -76,13 +82,39 @@ export const MedicationsPage: React.FC = () => {
       title: 'В приют',
       dataIndex: 'donateToShelter',
       key: 'donateToShelter',
-      render: (flag: boolean) => (flag ? <Tag color="purple">Да</Tag> : <span style={{ color: '#bfbfbf' }}>Нет</span>),
+      render: (flag: boolean, row: Medication) => (
+        <span onClick={() => handleToggleShelter(row)} style={{ cursor: 'pointer' }} title="Нажмите, чтобы переключить">
+          {flag ? (
+            <Tag color="purple">Да</Tag>
+          ) : (
+            <Tag style={{ color: '#8c8c8c' }}>Нет</Tag>
+          )}
+        </span>
+      ),
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 60,
+      render: (_: unknown, row: Medication) => (
+        <Popconfirm
+          title="Удалить препарат из аптечки?"
+          onConfirm={() => {
+            deleteMedication(row.id);
+            message.success(`«${row.name}» удален`);
+          }}
+          okText="Да"
+          cancelText="Нет"
+        >
+          <Button type="text" danger icon={<DeleteOutlined />} size="small" />
+        </Popconfirm>
+      ),
     },
   ];
 
-  const total = data.length;
-  const toShelter = data.filter((d) => d.donateToShelter).length;
-  const expired = data.filter((d) => dayjs(d.expiryDate).isBefore(dayjs())).length;
+  const total = medications.length;
+  const toShelter = medications.filter((d) => d.donateToShelter).length;
+  const expired = medications.filter((d) => dayjs(d.expiryDate).isBefore(dayjs())).length;
 
   return (
     <div>
@@ -105,23 +137,26 @@ export const MedicationsPage: React.FC = () => {
       </Row>
 
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
           <Title level={4} style={{ margin: 0 }}>Реестр домашней аптечки</Title>
-          <Space>
-            <Input
-              placeholder="Поиск лекарства..."
-              prefix={<SearchOutlined />}
-              value={search}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              style={{ width: 260 }}
-            />
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/add')}>
-              Добавить
-            </Button>
-          </Space>
+          <MedicationFilter
+            search={search}
+            onSearchChange={setSearch}
+            category={category}
+            onCategoryChange={setCategory}
+            onAddClick={() => navigate('/add')}
+          />
         </div>
 
-        <Table rowKey="id" columns={columns} dataSource={filtered} pagination={{ pageSize: 6 }} />
+        <DataStateBlock
+          loading={demoMode === 'loading'}
+          error={demoMode === 'error' ? 'Не удалось загрузить реестр препаратов.' : null}
+          isEmpty={filtered.length === 0}
+          emptyText="Препараты не найдены."
+          onRetry={() => setDemoMode('normal')}
+        >
+          <Table rowKey="id" columns={columns} dataSource={filtered} pagination={{ pageSize: 6 }} />
+        </DataStateBlock>
       </Card>
     </div>
   );
