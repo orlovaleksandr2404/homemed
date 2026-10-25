@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app import schemas, crud
+from app import schemas, crud, models
 from app.database import get_db
+from app.security import get_current_user
 
 router = APIRouter()
 
@@ -13,23 +14,23 @@ def read_shelters(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 def read_shelter(shelter_id: int, db: Session = Depends(get_db)):
     item = crud.get_shelter(db, shelter_id)
     if not item:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelter not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Приют не найден")
     return item
 
 @router.post("/", response_model=schemas.ShelterResponse, status_code=status.HTTP_201_CREATED)
-def create_shelter(payload: schemas.ShelterCreate, db: Session = Depends(get_db)):
+def create_shelter(
+    payload: schemas.ShelterCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     return crud.create_shelter(db, payload)
 
-@router.patch("/{shelter_id}", response_model=schemas.ShelterResponse)
-def update_shelter(shelter_id: int, payload: schemas.ShelterUpdate, db: Session = Depends(get_db)):
-    item = crud.update_shelter(db, shelter_id, payload)
-    if not item:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelter not found")
-    return item
-
 @router.delete("/{shelter_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_shelter(shelter_id: int, db: Session = Depends(get_db)):
+def delete_shelter(
+    shelter_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     item = crud.delete_shelter(db, shelter_id)
     if not item:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelter not found")
-
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Приют не найден")

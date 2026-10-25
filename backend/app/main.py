@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
-from app.routers import medications, shelters, donations
+from app.routers import auth, medications, shelters, donations
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,6 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(medications.router, prefix="/api/medications", tags=["Medications"])
 app.include_router(shelters.router, prefix="/api/shelters", tags=["Shelters"])
 app.include_router(donations.router, prefix="/api/donations", tags=["Donations"])
