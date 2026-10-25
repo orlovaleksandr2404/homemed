@@ -7,8 +7,12 @@ import {
   HeartOutlined,
   PlusCircleOutlined,
   ShopOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  LoginOutlined,
 } from '@ant-design/icons';
 import { useMedications } from '../../app/MedicationContext';
+import { useAuth } from '../../app/AuthContext';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Text } = Typography;
@@ -17,6 +21,7 @@ export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { demoMode, setDemoMode } = useMedications();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const menuItems: MenuProps['items'] = [
     {
@@ -47,18 +52,54 @@ export const AppLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center' }}>
-        <Title level={4} style={{ color: '#fff', margin: '0 24px 0 0', whiteSpace: 'nowrap' }}>
-          HomeMed
-        </Title>
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          selectedKeys={[location.pathname]}
-          items={menuItems}
-          onClick={handleMenuClick}
-          style={{ flex: 1, minWidth: 0 }}
-        />
+      <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+          <Title
+            level={4}
+            style={{ color: '#fff', margin: '0 24px 0 0', whiteSpace: 'nowrap', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
+            HomeMed
+          </Title>
+          <Menu
+            theme="dark"
+            mode="horizontal"
+            selectedKeys={[location.pathname]}
+            items={menuItems}
+            onClick={handleMenuClick}
+            style={{ flex: 1, minWidth: 0 }}
+          />
+        </div>
+
+        <div style={{ marginLeft: 16 }}>
+          {isAuthenticated ? (
+            <Space>
+              <Text style={{ color: '#fff' }}>
+                <UserOutlined style={{ marginRight: 6 }} />
+                {user?.fullName || user?.email}
+              </Text>
+              <Button
+                type="text"
+                danger
+                icon={<LogoutOutlined />}
+                onClick={() => {
+                  logout();
+                  navigate('/auth');
+                }}
+              >
+                Выйти
+              </Button>
+            </Space>
+          ) : (
+            <Button
+              type="primary"
+              icon={<LoginOutlined />}
+              onClick={() => navigate('/auth')}
+            >
+              Войти
+            </Button>
+          )}
+        </div>
       </Header>
 
       <Content style={{ padding: '24px 48px', maxWidth: 1200, width: '100%', margin: '0 auto' }}>
@@ -68,35 +109,19 @@ export const AppLayout: React.FC = () => {
       </Content>
 
       <Footer style={{ textAlign: 'center', color: '#8c8c8c' }}>
-        <div>HomeMed.</div>
+        <div>HomeMed. Онлайн-контроль домашней аптечки и передача препаратов в приюты.</div>
         <Space size="small" style={{ marginTop: 8, fontSize: 12 }}>
           <Text type="secondary" style={{ fontSize: 12 }}>Режим проверки состояний:</Text>
-          <Button
-            size="small"
-            type={demoMode === 'normal' ? 'primary' : 'default'}
-            onClick={() => setDemoMode('normal')}
-          >
+          <Button size="small" type={demoMode === 'normal' ? 'primary' : 'default'} onClick={() => setDemoMode('normal')}>
             Обычный
           </Button>
-          <Button
-            size="small"
-            type={demoMode === 'loading' ? 'primary' : 'default'}
-            onClick={() => setDemoMode('loading')}
-          >
+          <Button size="small" type={demoMode === 'loading' ? 'primary' : 'default'} onClick={() => setDemoMode('loading')}>
             Загрузка
           </Button>
-          <Button
-            size="small"
-            type={demoMode === 'error' ? 'primary' : 'default'}
-            onClick={() => setDemoMode('error')}
-          >
+          <Button size="small" type={demoMode === 'error' ? 'primary' : 'default'} onClick={() => setDemoMode('error')}>
             Ошибка
           </Button>
-          <Button
-            size="small"
-            type={demoMode === 'empty' ? 'primary' : 'default'}
-            onClick={() => setDemoMode('empty')}
-          >
+          <Button size="small" type={demoMode === 'empty' ? 'primary' : 'default'} onClick={() => setDemoMode('empty')}>
             Пусто
           </Button>
         </Space>
