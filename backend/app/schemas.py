@@ -1,5 +1,33 @@
 from datetime import date
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+class UserBase(BaseModel):
+    email: EmailStr
+    full_name: str | None = None
+
+class UserRegister(UserBase):
+    password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(UserBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+class AccessTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 class MedicationBase(BaseModel):
     name: str
@@ -20,6 +48,7 @@ class MedicationUpdate(BaseModel):
 
 class MedicationResponse(MedicationBase):
     id: int
+    user_id: int
     model_config = ConfigDict(from_attributes=True)
 
 class ShelterBase(BaseModel):
@@ -58,6 +87,7 @@ class DonationUpdate(BaseModel):
 
 class DonationResponse(DonationBase):
     id: int
+    user_id: int
     medication: MedicationResponse
     shelter: ShelterResponse
     model_config = ConfigDict(from_attributes=True)
